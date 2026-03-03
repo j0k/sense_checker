@@ -10,7 +10,7 @@ Chrome extension that checks **Sense**, **Emotions**, and **Propaganda** for You
 
 Analysis is based on the current video’s **title**, **channel name**, and **description** (no video or audio processing).
 
-- **Political dimension** – Define two topics (e.g. **proRussian** vs **proUkrainian**) and optional keyword lists. The extension scores each video on this axis (e.g. 70% proRussian · 30% proUkrainian). You can analyze the current video in the popup or paste a list of YouTube URLs and analyze them all on the same dimension.
+- **Political dimension** – Define two topics (e.g. **proRussian** vs **proUkrainian**) and optional keyword lists. The extension scores each video on this axis and shows a **wind rose** (compass-style) plus a bar. See [Political_dimension.md](Political_dimension.md) for topics relevant today and the wind rose idea.
 
 - **AI checker (optional)** – Use **OpenAI** (GPT), **DeepSeek**, or any **OpenAI-compatible** API as the analyzer. In Settings, enable “Use AI for analysis”, pick a provider, and add your API key. Analysis then uses the AI for Sense, Emotions, Propaganda, and the political dimension; if the API fails or is not configured, the built-in rule-based checker is used.
 
@@ -51,7 +51,7 @@ Screenshots of the extension popup are in the [`screen/`](screen/) folder.
    - Go to any YouTube watch page (`youtube.com/watch?v=...`)
    - Click the Sense Checker icon in the toolbar
    - Click **Check this video** to see Sense, Emotions, and Propaganda scores and a short summary
-   - **Settings (political topics):** click “Settings (political topics)” in the popup to set two labels (e.g. **proRussian** and **proUkrainian**) and comma-separated keywords for each. The analysis will then include a dimension bar (e.g. proRussian ←——•——→ proUkrainian).
+   - **Settings (political topics):** click “Settings (political topics)” in the popup to set two labels (e.g. **proRussian** and **proUkrainian**) and comma-separated keywords for each. The analysis then shows a **wind rose** (W↔E axis) and a bar for your topic pair.
    - **Analyze a list:** open the options page and use “Analyze a list of video URLs” to paste multiple YouTube URLs (one per line) and get a table of scores for each video on your political dimension.
    - **AI checker:** in Settings, under “AI checker”, enable “Use AI for analysis”, choose **OpenAI**, **DeepSeek**, or **Custom** (and set the API base URL), and enter your API key. The extension will use the AI for “Check this video”; on API error it falls back to the built-in checker.
 
@@ -59,6 +59,7 @@ Screenshots of the extension popup are in the [`screen/`](screen/) folder.
 
 ```
 sense_checker/
+├── Political_dimension.md   # Political topics (actual today) and wind rose
 ├── manifest.json       # Extension manifest (Manifest V3)
 ├── popup/
 │   ├── popup.html      # Popup UI

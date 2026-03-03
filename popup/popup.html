@@ -46,13 +46,26 @@
           <div id="emotions-touched-tags" class="emotions-touched-tags"></div>
         </div>
         <div id="dimension-row" class="dimension-row hidden">
-          <span id="dimension-label-a" class="dimension-label">proRussian</span>
+          <p class="dimension-value" id="dimension-value"></p>
+          <div class="wind-rose-wrap">
+            <svg id="wind-rose" class="wind-rose" viewBox="0 0 100 100" aria-label="Political dimension wind rose">
+              <circle class="wind-rose-circle" cx="50" cy="50" r="42" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+              <line id="wind-rose-axis-w" class="wind-rose-axis" x1="50" y1="50" x2="8" y2="50"/>
+              <line id="wind-rose-axis-e" class="wind-rose-axis" x1="50" y1="50" x2="92" y2="50"/>
+              <line id="wind-rose-needle" class="wind-rose-needle" x1="50" y1="50" x2="50" y2="50"/>
+              <text class="wind-rose-label west" x="10" y="52">W</text>
+              <text class="wind-rose-label east" x="88" y="52">E</text>
+            </svg>
+            <div class="wind-rose-legend">
+              <span id="dimension-label-a" class="dimension-label">proRussian</span>
+              <span class="dimension-label dim-mid">↔</span>
+              <span id="dimension-label-b" class="dimension-label">proUkrainian</span>
+            </div>
+          </div>
           <div class="dimension-bar-wrap">
             <div id="dimension-bar-a" class="dimension-bar left"></div>
             <div id="dimension-bar-b" class="dimension-bar right"></div>
           </div>
-          <span id="dimension-label-b" class="dimension-label">proUkrainian</span>
-          <p id="dimension-value" class="dimension-value"></p>
         </div>
         <p id="summary" class="summary"></p>
       </div>

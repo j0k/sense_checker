@@ -103,6 +103,15 @@ function showResults(sense, emotions, propaganda, summary, dimension, emotionsTo
     document.getElementById('dimension-bar-b').style.flex = String(dimension.percentB);
     document.getElementById('dimension-value').textContent =
       dimension.percentA + '% ' + dimension.topicA + ' · ' + dimension.percentB + '% ' + dimension.topicB;
+    var needle = document.getElementById('wind-rose-needle');
+    if (needle) {
+      var rad = Math.PI * (dimension.percentB / 100);
+      var r = 42;
+      var x2 = 50 + r * Math.cos(rad);
+      var y2 = 50 - r * Math.sin(rad);
+      needle.setAttribute('x2', x2);
+      needle.setAttribute('y2', y2);
+    }
     dimRow.classList.remove('hidden');
   } else {
     dimRow.classList.add('hidden');
