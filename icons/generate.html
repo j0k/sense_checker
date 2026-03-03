@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+  <p>Click to download icon16.png, icon32.png, icon48.png. Save them in the <code>icons</code> folder.</p>
+  <button id="dl">Download all icons</button>
+  <script>
+    function drawIcon(size) {
+      const c = document.createElement('canvas');
+      c.width = size;
+      c.height = size;
+      const ctx = c.getContext('2d');
+      const s = size;
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.rect(0, 0, s, s);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = Math.max(1, s/16);
+      ctx.beginPath();
+      ctx.arc(s/2, s/2, s/3.5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(s/2 + s/6, s/2 + s/6);
+      ctx.lineTo(s/2 + s/4, s/2 + s/4);
+      ctx.moveTo(s/2 + s/4, s/2);
+      ctx.lineTo(s/2 + s/4, s/2 + s/4);
+      ctx.lineTo(s/2, s/2 + s/4);
+      ctx.stroke();
+      return c;
+    }
+    function download(canvas, name) {
+      const a = document.createElement('a');
+      a.download = name;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+    document.getElementById('dl').onclick = function() {
+      [16, 32, 48].forEach(function(n) {
+        setTimeout(function() { download(drawIcon(n), 'icon' + n + '.png'); }, n * 100);
+      });
+    };
+  </script>
+</body>
+</html>

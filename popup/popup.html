@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sense Checker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Sense Checker</h1>
+      <p class="subtitle">Sense, Emotions & Propaganda</p>
+      <a href="#" id="open-options" class="link">Settings (political topics)</a>
+    </header>
+
+    <div id="no-video" class="card message">
+      <p>Open a YouTube video page and click the extension to analyze it.</p>
+    </div>
+
+    <div id="video-panel" class="card hidden">
+      <div class="video-info">
+        <h2 id="video-title">—</h2>
+        <p id="video-channel" class="meta">—</p>
+      </div>
+      <button id="check-btn" class="btn primary">Check this video</button>
+      <div id="results" class="results hidden">
+        <div class="result-row">
+          <span class="label">Sense</span>
+          <div class="bar-wrap"><div id="sense-bar" class="bar" style="width: 0%"></div></div>
+          <span id="sense-value" class="value">—</span>
+        </div>
+        <div class="result-row">
+          <span class="label">Emotions</span>
+          <div class="bar-wrap"><div id="emotions-bar" class="bar" style="width: 0%"></div></div>
+          <span id="emotions-value" class="value">—</span>
+        </div>
+        <div class="result-row">
+          <span class="label">Propaganda</span>
+          <div class="bar-wrap"><div id="propaganda-bar" class="bar propaganda" style="width: 0%"></div></div>
+          <span id="propaganda-value" class="value">—</span>
+        </div>
+        <div id="dimension-row" class="dimension-row hidden">
+          <span id="dimension-label-a" class="dimension-label">proRussian</span>
+          <div class="dimension-bar-wrap">
+            <div id="dimension-bar-a" class="dimension-bar left"></div>
+            <div id="dimension-bar-b" class="dimension-bar right"></div>
+          </div>
+          <span id="dimension-label-b" class="dimension-label">proUkrainian</span>
+          <p id="dimension-value" class="dimension-value"></p>
+        </div>
+        <p id="summary" class="summary"></p>
+      </div>
+      <div id="loading" class="loading hidden">Analyzing…</div>
+    </div>
+  </div>
+  <script src="../shared/political-dimension.js"></script>
+  <script src="../shared/ai-checker.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

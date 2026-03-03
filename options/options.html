@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sense Checker — Political dimension</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Political dimension</h1>
+    <p class="intro">Set two topics (e.g. proRussian vs proUkrainian). Videos are scored by keyword matches in title and description.</p>
+
+    <div class="form-group">
+      <label for="topicA">Topic A label</label>
+      <input type="text" id="topicA" placeholder="e.g. proRussian" />
+    </div>
+    <div class="form-group">
+      <label for="keywordsA">Topic A keywords (comma-separated)</label>
+      <textarea id="keywordsA" rows="3" placeholder="russia, putin, kremlin, moscow, donbass, russian army, ..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="topicB">Topic B label</label>
+      <input type="text" id="topicB" placeholder="e.g. proUkrainian" />
+    </div>
+    <div class="form-group">
+      <label for="keywordsB">Topic B keywords (comma-separated)</label>
+      <textarea id="keywordsB" rows="3" placeholder="ukraine, zelensky, kyiv, ukrainian army, ..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button id="save" class="btn primary">Save</button>
+      <button id="defaults" class="btn secondary">Reset to proRussian / proUkrainian defaults</button>
+    </div>
+    <p id="status" class="status"></p>
+
+    <hr class="section-hr" />
+    <h2>AI checker (optional)</h2>
+    <p class="intro">Use OpenAI, DeepSeek, or any OpenAI-compatible API for analysis. If disabled or missing key, the built-in rule-based checker is used.</p>
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="useAI" />
+        Use AI for analysis when API key is set
+      </label>
+    </div>
+    <div class="form-group">
+      <label for="aiProvider">Provider</label>
+      <select id="aiProvider">
+        <option value="openai">OpenAI (GPT)</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="custom">Custom (OpenAI-compatible)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="apiKey">API key</label>
+      <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" />
+    </div>
+    <div class="form-group" id="customUrlGroup">
+      <label for="customBaseUrl">Custom API base URL</label>
+      <input type="url" id="customBaseUrl" placeholder="https://your-api.com/v1" />
+    </div>
+
+    <p class="footer"><a href="../list/list.html" target="_blank">Analyze a list of video URLs →</a></p>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>

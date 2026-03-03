@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sense Checker — Analyze list</title>
+  <link rel="stylesheet" href="list.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Analyze videos on political dimension</h1>
+    <p class="intro">Paste YouTube video URLs (one per line). Each video is scored on your two topics (e.g. <strong>proRussian</strong> vs <strong>proUkrainian</strong>).</p>
+
+    <div class="form-group">
+      <label for="urls">YouTube video URLs (one per line)</label>
+      <textarea id="urls" rows="8" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."></textarea>
+    </div>
+    <div class="actions">
+      <button id="analyze" class="btn primary">Analyze list</button>
+      <a href="../options/options.html" class="btn secondary link">Edit topics (Settings)</a>
+    </div>
+
+    <div id="loading" class="loading hidden">Fetching and analyzing…</div>
+    <div id="error" class="error hidden"></div>
+    <div id="results" class="results hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>Video</th>
+            <th id="th-a">proRussian</th>
+            <th id="th-b">proUkrainian</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="../shared/political-dimension.js"></script>
+  <script src="list.js"></script>
+</body>
+</html>

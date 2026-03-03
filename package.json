@@ -1,0 +1,12 @@
+{
+  "name": "sense_checker",
+  "version": "1.0.0",
+  "description": "Sense, Emotions and Propaganda checker for YouTube videos (Chrome extension)",
+  "private": true,
+  "scripts": {
+    "generate-icons": "node scripts/generate-icons.js"
+  },
+  "devDependencies": {
+    "pngjs": "^7.0.0"
+  }
+}

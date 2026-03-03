@@ -1,0 +1,55 @@
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #f0f4f8;
+  margin: 0;
+  padding: 24px;
+}
+.container { max-width: 900px; margin: 0 auto; }
+h1 { margin: 0 0 8px; font-size: 1.5rem; color: #0f172a; }
+.intro { color: #475569; margin-bottom: 20px; line-height: 1.5; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-weight: 600; color: #334155; margin-bottom: 6px; }
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn.primary { background: #0f172a; color: #fff; }
+.btn.primary:hover { background: #1e293b; }
+.btn.secondary { background: #e2e8f0; color: #334155; }
+.btn.secondary.link { color: #334155; }
+.btn.secondary:hover { background: #cbd5e1; }
+.loading { color: #64748b; margin-bottom: 16px; }
+.error { color: #dc2626; margin-bottom: 16px; }
+.hidden { display: none !important; }
+.results { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; font-weight: 600; color: #334155; font-size: 0.85rem; }
+td { font-size: 0.9rem; }
+tr:last-child td { border-bottom: none; }
+.video-title { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.video-title a { color: #2563eb; text-decoration: none; }
+.video-title a:hover { text-decoration: underline; }
+.score-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #e2e8f0; min-width: 80px; }
+.score-bar .a { background: #dc2626; }
+.score-bar .b { background: #2563eb; }
+.score-text { font-size: 0.8rem; color: #64748b; }
