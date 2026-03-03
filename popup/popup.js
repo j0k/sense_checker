@@ -31,6 +31,18 @@ function isYouTubeShorts(tab) {
   }
 }
 
+function isYouTubeFeed(tab) {
+  if (!tab?.url) return false;
+  try {
+    const u = new URL(tab.url);
+    if (u.hostname !== 'www.youtube.com') return false;
+    if (u.pathname === '/watch' || u.pathname.startsWith('/shorts/')) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function fetchVideoData() {
   const tab = await getCurrentTab();
   if (!tab?.id) return null;
@@ -279,10 +291,64 @@ document.getElementById('open-options').addEventListener('click', (e) => {
   chrome.runtime.openOptionsPage();
 });
 
+let markedVideoIds = [];
+
+document.getElementById('feed-make').addEventListener('click', async () => {
+  const tab = await getCurrentTab();
+  if (!tab?.id || !isYouTubeFeed(tab)) return;
+  const threshold = Math.max(1, Math.min(100, parseInt(document.getElementById('feed-threshold').value, 10) || 30));
+  const statusEl = document.getElementById('feed-status');
+  const notIntBtn = document.getElementById('feed-not-interested');
+  statusEl.textContent = 'Scanning…';
+  notIntBtn.disabled = true;
+  markedVideoIds = [];
+  try {
+    const res = await chrome.tabs.sendMessage(tab.id, { action: 'getVisibleVideos' });
+    if (!res?.ok || !Array.isArray(res.videos)) {
+      statusEl.textContent = 'Could not get videos. Try refreshing the page.';
+      return;
+    }
+    const opts = await chrome.storage.sync.get(['topicA', 'topicB', 'keywordsA', 'keywordsB']);
+    const keywordsA = opts.keywordsA || 'russia, putin, kremlin';
+    const keywordsB = opts.keywordsB || 'ukraine, zelensky, kyiv';
+    for (const v of res.videos) {
+      const text = [v.title, v.channel].filter(Boolean).join(' ');
+      const r = scorePoliticalDimension(text, keywordsA, keywordsB);
+      if (r.percentA >= threshold || r.percentB >= threshold) markedVideoIds.push(v.videoId);
+    }
+    notIntBtn.disabled = markedVideoIds.length === 0;
+    statusEl.textContent = markedVideoIds.length + ' video(s) marked above ' + threshold + '%. Click "Not interested" to apply.';
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + (e.message || 'reload the page and try again.');
+  }
+});
+
+document.getElementById('feed-not-interested').addEventListener('click', async () => {
+  const tab = await getCurrentTab();
+  if (!tab?.id || markedVideoIds.length === 0) return;
+  const statusEl = document.getElementById('feed-status');
+  statusEl.textContent = 'Clicking…';
+  try {
+    const res = await chrome.tabs.sendMessage(tab.id, { action: 'clickNotInterested', videoIds: markedVideoIds });
+    if (res?.ok) {
+      statusEl.textContent = 'Done: ' + (res.done || 0) + ' clicked, ' + (res.failed || 0) + ' failed.';
+      markedVideoIds = [];
+      document.getElementById('feed-not-interested').disabled = true;
+    } else {
+      statusEl.textContent = 'Error: ' + (res?.error || 'unknown');
+    }
+  } catch (e) {
+    statusEl.textContent = 'Error: ' + (e.message || 'reload and try again.');
+  }
+});
+
 (async () => {
+  const tab = await getCurrentTab();
   const data = await fetchVideoData();
+  const onFeed = tab && isYouTubeFeed(tab);
   if (data && (data.title || data.url)) {
     noVideoEl.classList.add('hidden');
+    document.getElementById('feed-panel').classList.add('hidden');
     videoPanelEl.classList.remove('hidden');
     videoTitleEl.textContent = data.title || 'Untitled';
     videoChannelEl.textContent = data.channel ? `Channel: ${data.channel}` : '';
@@ -295,8 +361,15 @@ document.getElementById('open-options').addEventListener('click', (e) => {
       badge.classList.add('hidden');
       btn.textContent = 'Check this video';
     }
+  } else if (onFeed) {
+    noVideoEl.classList.add('hidden');
+    videoPanelEl.classList.add('hidden');
+    document.getElementById('feed-panel').classList.remove('hidden');
+    const opts = await chrome.storage.sync.get(['topicA', 'topicB']);
+    document.getElementById('feed-topics').textContent = 'Using saved: ' + (opts.topicA || 'Topic A') + ' vs ' + (opts.topicB || 'Topic B');
   } else {
     noVideoEl.classList.remove('hidden');
     videoPanelEl.classList.add('hidden');
+    document.getElementById('feed-panel').classList.add('hidden');
   }
 })();

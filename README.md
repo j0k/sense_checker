@@ -11,6 +11,7 @@ Chrome extension that checks **Sense**, **Emotions**, and **Propaganda** for You
 Analysis is based on the current video’s **title**, **channel name**, and **description** (no video or audio processing).
 
 - **Political dimension** – Define two topics (e.g. **proRussian** vs **proUkrainian**) and optional keyword lists. The extension scores each video on this axis and shows a **wind rose** (compass-style) plus a bar. See [Political_dimension.md](Political_dimension.md) for topics relevant today and the wind rose idea.
+- **Mark political videos + “Not interested”** – On the **feed or search results**, use your saved political topics: **Make** scans the page and marks videos above a threshold; **Not interested** clicks YouTube’s “Not interested” on each marked video.
 
 - **AI checker (optional)** – Use **OpenAI** (GPT), **DeepSeek**, or any **OpenAI-compatible** API as the analyzer. In Settings, enable “Use AI for analysis”, pick a provider, and add your API key. Analysis then uses the AI for Sense, Emotions, Propaganda, and the political dimension; if the API fails or is not configured, the built-in rule-based checker is used.
 
@@ -54,6 +55,7 @@ Screenshots of the extension popup are in the [`screen/`](screen/) folder.
    - **Settings (political topics):** click “Settings (political topics)” in the popup to set two labels (e.g. **proRussian** and **proUkrainian**) and comma-separated keywords for each. The analysis then shows a **wind rose** (W↔E axis) and a bar for your topic pair.
    - **Analyze a list:** open the options page and use “Analyze a list of video URLs” to paste multiple YouTube URLs (one per line) and get a table of scores for each video on your political dimension.
    - **AI checker:** in Settings, under “AI checker”, enable “Use AI for analysis”, choose **OpenAI**, **DeepSeek**, or **Custom** (and set the API base URL), and enter your API key. The extension will use the AI for “Check this video”; on API error it falls back to the built-in checker.
+   - **Mark political videos and “Not interested”:** on the **YouTube home feed or search results**, open the popup to see **“Mark political videos”**. Set a **threshold** (e.g. mark if either topic ≥ 30%). Click **Make** to scan visible videos; then **Not interested** to click YouTube’s “Not interested” on each marked video.
 
 ## Project structure
 
@@ -66,7 +68,7 @@ sense_checker/
 │   ├── popup.css       # Styles
 │   └── popup.js        # Logic + analyzer
 ├── content/
-│   └── content.js      # Runs on YouTube (optional hooks)
+│   └── content.js      # Runs on YouTube: getVisibleVideos, clickNotInterested
 ├── options/            # Political dimension settings (proRussian / proUkrainian, keywords)
 │   ├── options.html
 │   ├── options.css

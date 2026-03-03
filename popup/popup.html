@@ -15,7 +15,22 @@
     </header>
 
     <div id="no-video" class="card message">
-      <p>Open a YouTube video page and click the extension to analyze it.</p>
+      <p>Open a YouTube video page or feed and click the extension.</p>
+    </div>
+
+    <div id="feed-panel" class="card hidden">
+      <h2 class="panel-title">Mark political videos</h2>
+      <p class="panel-desc">Use your saved political dimension. Step 1: <strong>Make</strong> scans this page and marks videos above the threshold. Step 2: <strong>Not interested</strong> clicks YouTube’s “Not interested” on each marked video.</p>
+      <div class="form-row">
+        <label for="feed-threshold">Threshold (mark if either topic ≥ %)</label>
+        <input type="number" id="feed-threshold" min="1" max="100" value="30" />
+      </div>
+      <p class="feed-topics" id="feed-topics">Using saved: Topic A vs Topic B</p>
+      <div class="feed-actions">
+        <button id="feed-make" class="btn primary">Make</button>
+        <button id="feed-not-interested" class="btn secondary" disabled>Not interested</button>
+      </div>
+      <p id="feed-status" class="feed-status"></p>
     </div>
 
     <div id="video-panel" class="card hidden">
