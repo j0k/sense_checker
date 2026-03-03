@@ -20,6 +20,7 @@
 
     <div id="video-panel" class="card hidden">
       <div class="video-info">
+        <span id="shorts-badge" class="shorts-badge hidden">Short</span>
         <h2 id="video-title">—</h2>
         <p id="video-channel" class="meta">—</p>
       </div>
@@ -40,6 +41,10 @@
           <div class="bar-wrap"><div id="propaganda-bar" class="bar propaganda" style="width: 0%"></div></div>
           <span id="propaganda-value" class="value">—</span>
         </div>
+        <div id="emotions-touched-row" class="emotions-touched-row hidden">
+          <p class="emotions-touched-label">Emotions touched</p>
+          <div id="emotions-touched-tags" class="emotions-touched-tags"></div>
+        </div>
         <div id="dimension-row" class="dimension-row hidden">
           <span id="dimension-label-a" class="dimension-label">proRussian</span>
           <div class="dimension-bar-wrap">
@@ -55,6 +60,7 @@
     </div>
   </div>
   <script src="../shared/political-dimension.js"></script>
+  <script src="../shared/emotion-tags.js"></script>
   <script src="../shared/ai-checker.js"></script>
   <script src="popup.js"></script>
 </body>

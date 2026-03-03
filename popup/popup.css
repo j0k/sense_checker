@@ -68,6 +68,16 @@ h1 {
   margin-bottom: 12px;
 }
 
+.shorts-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #7c3aed;
+  background: #ede9fe;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
 .video-info h2 {
   margin: 0 0 4px;
   font-size: 0.95rem;
@@ -148,6 +158,30 @@ h1 {
   background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
+.emotions-touched-row {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+.emotions-touched-label {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+}
+.emotions-touched-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.emotion-tag {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
 .dimension-row {
   margin-top: 14px;
   padding-top: 12px;

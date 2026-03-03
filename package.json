@@ -1,6 +1,6 @@
 {
   "name": "sense_checker",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Sense, Emotions and Propaganda checker for YouTube videos (Chrome extension)",
   "private": true,
   "scripts": {

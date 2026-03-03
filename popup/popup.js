@@ -11,7 +11,7 @@ async function getCurrentTab() {
   return tab;
 }
 
-async function isYouTubeVideo(tab) {
+function isYouTubeVideo(tab) {
   if (!tab?.url) return false;
   try {
     const u = new URL(tab.url);
@@ -21,14 +21,37 @@ async function isYouTubeVideo(tab) {
   }
 }
 
+function isYouTubeShorts(tab) {
+  if (!tab?.url) return false;
+  try {
+    const u = new URL(tab.url);
+    return u.hostname === 'www.youtube.com' && u.pathname.startsWith('/shorts/');
+  } catch {
+    return false;
+  }
+}
+
 async function fetchVideoData() {
   const tab = await getCurrentTab();
-  if (!tab?.id || !(await isYouTubeVideo(tab))) return null;
+  if (!tab?.id) return null;
+  const isShorts = isYouTubeShorts(tab);
+  const isVideo = isYouTubeVideo(tab);
+  if (!isShorts && !isVideo) return null;
   const results = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    func: () => {
-      const sel = (s) => document.querySelector(s);
+    func: (isShortsPage) => {
       const getText = (el) => (el && el.textContent ? el.textContent.trim() : '');
+      if (isShortsPage) {
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        const title = ogTitle ? (ogTitle.getAttribute('content') || '').trim() : '';
+        const description = ogDesc ? (ogDesc.getAttribute('content') || '').trim() : '';
+        const sel = (s) => document.querySelector(s);
+        const channelEl = sel('[data-author-name]') || sel('ytd-channel-name a') || sel('#text.ytd-channel-name a');
+        const channel = channelEl ? (channelEl.getAttribute('data-author-name') || getText(channelEl)) : '';
+        return { title: title || 'Short', channel, description, url: window.location.href, isShorts: true };
+      }
+      const sel = (s) => document.querySelector(s);
       const titleEl = sel('h1.ytd-video-primary-info-renderer yt-formatted-string') || sel('#title h1 yt-formatted-string') || sel('h1.title yt-formatted-string') || sel('#title h1') || sel('h1.title');
       const channelEl = sel('#owner-name a') || sel('ytd-channel-name a') || sel('#text.ytd-channel-name a') || sel('ytd-video-owner-renderer a');
       const descEl = sel('#description-inline-expander yt-formatted-string') || sel('#description-inner yt-formatted-string') || sel('ytd-text-inline-expander#description-inline-expander') || sel('#description yt-formatted-string');
@@ -37,14 +60,16 @@ async function fetchVideoData() {
         channel: getText(channelEl),
         description: getText(descEl) || '',
         url: window.location.href,
+        isShorts: false,
       };
     },
+    args: [isShorts],
   });
   if (!results?.[0]?.result) return null;
   return results[0].result;
 }
 
-function showResults(sense, emotions, propaganda, summary, dimension) {
+function showResults(sense, emotions, propaganda, summary, dimension, emotionsTouched) {
   const senseBar = document.getElementById('sense-bar');
   const emotionsBar = document.getElementById('emotions-bar');
   const propagandaBar = document.getElementById('propaganda-bar');
@@ -61,6 +86,15 @@ function showResults(sense, emotions, propaganda, summary, dimension) {
   propagandaValue.textContent = propaganda + '%';
   summaryEl.textContent = summary || '';
 
+  const emotionsRow = document.getElementById('emotions-touched-row');
+  const tagsEl = document.getElementById('emotions-touched-tags');
+  if (emotionsTouched && emotionsTouched.length > 0) {
+    tagsEl.innerHTML = emotionsTouched.map((e) => '<span class="emotion-tag">' + escapeHtml(e) + '</span>').join('');
+    emotionsRow.classList.remove('hidden');
+  } else {
+    emotionsRow.classList.add('hidden');
+  }
+
   const dimRow = document.getElementById('dimension-row');
   if (dimension && typeof scorePoliticalDimension === 'function') {
     document.getElementById('dimension-label-a').textContent = dimension.topicA;
@@ -74,6 +108,11 @@ function showResults(sense, emotions, propaganda, summary, dimension) {
     dimRow.classList.add('hidden');
   }
   resultsEl.classList.remove('hidden');
+}
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
 }
 
 function setLoading(loading) {
@@ -135,9 +174,14 @@ async function runCheck() {
         dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: r.percentA, percentB: r.percentB };
       }
     }
-    showResults(sense, emotions, propaganda, summary, dimension);
+    let emotionsTouched = [];
+    if (data.isShorts && typeof getEmotionsTouched === 'function') {
+      const et = getEmotionsTouched(text);
+      emotionsTouched = et.emotions || [];
+    }
+    showResults(sense, emotions, propaganda, summary, dimension, emotionsTouched);
   } catch (e) {
-    showResults(0, 0, 0, 'Analysis failed. Try again.', null);
+    showResults(0, 0, 0, 'Analysis failed. Try again.', null, null);
   } finally {
     setLoading(false);
   }
@@ -233,6 +277,15 @@ document.getElementById('open-options').addEventListener('click', (e) => {
     videoPanelEl.classList.remove('hidden');
     videoTitleEl.textContent = data.title || 'Untitled';
     videoChannelEl.textContent = data.channel ? `Channel: ${data.channel}` : '';
+    const badge = document.getElementById('shorts-badge');
+    const btn = document.getElementById('check-btn');
+    if (data.isShorts) {
+      badge.classList.remove('hidden');
+      btn.textContent = 'Check this Short';
+    } else {
+      badge.classList.add('hidden');
+      btn.textContent = 'Check this video';
+    }
   } else {
     noVideoEl.classList.remove('hidden');
     videoPanelEl.classList.add('hidden');
