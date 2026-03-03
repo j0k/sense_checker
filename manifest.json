@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sense Checker",
-  "version": "1.2.0",
+  "version": "0.1.0",
   "description": "Sense, Emotions and Propaganda checker for YouTube videos",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
