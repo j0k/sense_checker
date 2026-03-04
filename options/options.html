@@ -36,6 +36,26 @@
     <p id="status" class="status"></p>
 
     <hr class="section-hr" />
+    <h2>Propaganda dimension</h2>
+    <p class="intro">Optional second axis: two topics for propaganda/narrative slant (e.g. state narrative vs independent). Scored like the political dimension from title and description.</p>
+    <div class="form-group">
+      <label for="propTopicA">Propaganda Topic A label</label>
+      <input type="text" id="propTopicA" placeholder="e.g. state narrative" />
+    </div>
+    <div class="form-group">
+      <label for="propKeywordsA">Propaganda Topic A keywords (comma-separated)</label>
+      <textarea id="propKeywordsA" rows="2" placeholder="official, state, government, approved, mainstream narrative, ..."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="propTopicB">Propaganda Topic B label</label>
+      <input type="text" id="propTopicB" placeholder="e.g. independent / critical" />
+    </div>
+    <div class="form-group">
+      <label for="propKeywordsB">Propaganda Topic B keywords (comma-separated)</label>
+      <textarea id="propKeywordsB" rows="2" placeholder="independent, critical, alternative, fact-check, expose, ..."></textarea>
+    </div>
+
+    <hr class="section-hr" />
     <h2>AI checker (optional)</h2>
     <p class="intro">Use OpenAI, DeepSeek, or any OpenAI-compatible API for analysis. If disabled or missing key, the built-in rule-based checker is used.</p>
     <div class="form-group">

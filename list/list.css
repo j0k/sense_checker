@@ -53,3 +53,6 @@ tr:last-child td { border-bottom: none; }
 .score-bar .a { background: #dc2626; }
 .score-bar .b { background: #2563eb; }
 .score-text { font-size: 0.8rem; color: #64748b; }
+.section-hr { border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 16px; }
+h2 { font-size: 1.1rem; color: #0f172a; margin: 0 0 8px; }
+#json-output { font-family: ui-monospace, monospace; font-size: 12px; }

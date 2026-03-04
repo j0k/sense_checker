@@ -92,3 +92,90 @@ function escapeHtml(s) {
   div.textContent = s;
   return div.innerHTML;
 }
+
+// Parse video titles from pasted YouTube list (mixed format: title, channel, views, etc.)
+function parseTitlesFromPaste(text) {
+  const blocks = text.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  const titles = [];
+  const skipLine = (s) => !s || s.length < 5 || /^\d+:\d+$/.test(s) || /^\d+[KkMm]?\s*views?/i.test(s) || /^\d+\s*(days?|hours?|years?|months?)\s*ago/i.test(s) || s === 'New' || s === 'Dubbed' || /^[\s•]+$/.test(s);
+  for (const block of blocks) {
+    const lines = block.split(/\n/).map((s) => s.trim()).filter(Boolean);
+    let title = null;
+    for (const line of lines) {
+      if (skipLine(line)) continue;
+      title = line;
+      break;
+    }
+    if (title) titles.push(title);
+  }
+  if (titles.length > 0) return titles;
+  const onePerLine = text.split(/\n/).map((s) => s.trim()).filter((s) => s.length >= 5 && !/^\d+:\d+$/.test(s) && !/^\d+[KkMm]?\s*views?/i.test(s));
+  return onePerLine;
+}
+
+const POLITICAL_KEYWORDS = [
+  'war', 'война', 'iran', 'иран', 'israel', 'израиль', 'putin', 'путин', 'trump', 'lavrov', 'лавров',
+  'nuclear', 'missile', 'ракет', 'бомбардиров', 'gas', 'газ', 'migration', 'миграц', 'жириновский',
+  'zhirinovsky', 'kim jong', 'nato', 'нато', 'ukraine', 'украин', 'russia', 'росси', 'санкц', 'sanction',
+  'ww3', 'wwiii', 'threat', 'угроз', 'centcom', 'operation', 'операц', 'f-35', 'tomahawk', 'ballistic',
+  'дипломат', 'diplomat', 'мвд', 'безопасност', 'security', 'террорист', 'terror',
+];
+
+function scorePolitic(text) {
+  const lower = (text || '').toLowerCase();
+  let count = 0;
+  for (const kw of POLITICAL_KEYWORDS) {
+    if (lower.includes(kw)) count++;
+  }
+  return Math.min(1, Math.round((count * 0.25) * 100) / 100);
+}
+
+function scoreTitleForJson(title, keywordsA, keywordsB) {
+  const r = scorePoliticalDimension(title, keywordsA, keywordsB);
+  const pro_Russian = Math.round((r.percentA / 100) * 100) / 100;
+  const pro_Ukranian = Math.round((r.percentB / 100) * 100) / 100;
+  const fromDimension = Math.max(pro_Russian, pro_Ukranian);
+  const fromPolitical = scorePolitic(title);
+  const politic = Math.round(Math.max(fromDimension, fromPolitical) * 100) / 100;
+  return { politic, pro_Russian, pro_Ukranian };
+}
+
+document.getElementById('score-json').addEventListener('click', async () => {
+  const paste = document.getElementById('list-paste').value.trim();
+  if (!paste) {
+    document.getElementById('json-status').textContent = 'Paste a list first.';
+    return;
+  }
+  const titles = parseTitlesFromPaste(paste);
+  if (titles.length === 0) {
+    document.getElementById('json-status').textContent = 'No titles parsed. Use one title per line or blocks separated by blank lines.';
+    return;
+  }
+  const opts = await chrome.storage.sync.get(Object.keys(DEFAULTS));
+  const keywordsA = opts.keywordsA || DEFAULTS.keywordsA;
+  const keywordsB = opts.keywordsB || DEFAULTS.keywordsB;
+  document.getElementById('json-status').textContent = 'Scoring ' + titles.length + ' titles…';
+  const videos = titles.map((title) => {
+    const s = scoreTitleForJson(title, keywordsA, keywordsB);
+    return { title, politic: s.politic, pro_Russian: s.pro_Russian, pro_Ukranian: s.pro_Ukranian };
+  });
+  const json = JSON.stringify({ videos }, null, 2);
+  document.getElementById('json-output').value = json;
+  document.getElementById('json-status').textContent = 'Done. ' + titles.length + ' videos scored.';
+  document.getElementById('copy-json').classList.remove('hidden');
+});
+
+document.getElementById('copy-json').addEventListener('click', async () => {
+  const json = document.getElementById('json-output').value;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(json);
+    } else {
+      document.getElementById('json-output').select();
+      document.execCommand('copy');
+    }
+    document.getElementById('json-status').textContent = 'JSON copied to clipboard.';
+  } catch (_) {
+    document.getElementById('json-status').textContent = 'Select and copy the JSON manually.';
+  }
+});

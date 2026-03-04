@@ -53,24 +53,27 @@ async function fetchVideoData() {
     target: { tabId: tab.id },
     func: (isShortsPage) => {
       const getText = (el) => (el && el.textContent ? el.textContent.trim() : '');
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      const metaTitle = ogTitle ? (ogTitle.getAttribute('content') || '').trim() : '';
+      const metaDesc = ogDesc ? (ogDesc.getAttribute('content') || '').trim() : '';
       if (isShortsPage) {
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        const title = ogTitle ? (ogTitle.getAttribute('content') || '').trim() : '';
-        const description = ogDesc ? (ogDesc.getAttribute('content') || '').trim() : '';
         const sel = (s) => document.querySelector(s);
         const channelEl = sel('[data-author-name]') || sel('ytd-channel-name a') || sel('#text.ytd-channel-name a');
         const channel = channelEl ? (channelEl.getAttribute('data-author-name') || getText(channelEl)) : '';
-        return { title: title || 'Short', channel, description, url: window.location.href, isShorts: true };
+        return { title: metaTitle || 'Short', channel, description: metaDesc, url: window.location.href, isShorts: true };
       }
       const sel = (s) => document.querySelector(s);
       const titleEl = sel('h1.ytd-video-primary-info-renderer yt-formatted-string') || sel('#title h1 yt-formatted-string') || sel('h1.title yt-formatted-string') || sel('#title h1') || sel('h1.title');
       const channelEl = sel('#owner-name a') || sel('ytd-channel-name a') || sel('#text.ytd-channel-name a') || sel('ytd-video-owner-renderer a');
       const descEl = sel('#description-inline-expander yt-formatted-string') || sel('#description-inner yt-formatted-string') || sel('ytd-text-inline-expander#description-inline-expander') || sel('#description yt-formatted-string');
+      const domTitle = getText(titleEl);
+      const domChannel = getText(channelEl);
+      const domDesc = getText(descEl);
       return {
-        title: getText(titleEl),
-        channel: getText(channelEl),
-        description: getText(descEl) || '',
+        title: metaTitle || domTitle,
+        channel: domChannel || '',
+        description: metaDesc || domDesc,
         url: window.location.href,
         isShorts: false,
       };
@@ -81,7 +84,7 @@ async function fetchVideoData() {
   return results[0].result;
 }
 
-function showResults(sense, emotions, propaganda, summary, dimension, emotionsTouched) {
+function showResults(sense, emotions, propaganda, summary, dimension, emotionsTouched, propDimension) {
   const senseBar = document.getElementById('sense-bar');
   const emotionsBar = document.getElementById('emotions-bar');
   const propagandaBar = document.getElementById('propaganda-bar');
@@ -128,6 +131,18 @@ function showResults(sense, emotions, propaganda, summary, dimension, emotionsTo
   } else {
     dimRow.classList.add('hidden');
   }
+  const propDimRow = document.getElementById('prop-dimension-row');
+  if (propDimension && propDimension.topicA && propDimension.topicB) {
+    document.getElementById('prop-dimension-value').textContent =
+      propDimension.percentA + '% ' + propDimension.topicA + ' · ' + propDimension.percentB + '% ' + propDimension.topicB;
+    document.getElementById('prop-dimension-label-a').textContent = propDimension.topicA;
+    document.getElementById('prop-dimension-label-b').textContent = propDimension.topicB;
+    document.getElementById('prop-dimension-bar-a').style.flex = String(propDimension.percentA);
+    document.getElementById('prop-dimension-bar-b').style.flex = String(propDimension.percentB);
+    propDimRow.classList.remove('hidden');
+  } else {
+    propDimRow.classList.add('hidden');
+  }
   resultsEl.classList.remove('hidden');
 }
 function escapeHtml(s) {
@@ -150,9 +165,9 @@ async function runCheck() {
   if (!data) return;
   setLoading(true);
   const text = [data.title, data.channel, data.description].filter(Boolean).join(' ');
-  const opts = await chrome.storage.sync.get(['topicA', 'topicB', 'keywordsA', 'keywordsB', 'useAI', 'aiProvider', 'apiKey', 'customBaseUrl']);
+  const opts = await chrome.storage.sync.get(['topicA', 'topicB', 'keywordsA', 'keywordsB', 'propTopicA', 'propTopicB', 'propKeywordsA', 'propKeywordsB', 'useAI', 'aiProvider', 'apiKey', 'customBaseUrl']);
   try {
-    let sense, emotions, propaganda, summary, dimension = null;
+    let sense, emotions, propaganda, summary, dimension = null, propDimension = null;
     if (opts.useAI && opts.apiKey && typeof callAIChecker === 'function') {
       try {
         const ai = await callAIChecker(text, {
@@ -172,6 +187,10 @@ async function runCheck() {
           percentA: ai.percentA,
           percentB: ai.percentB,
         };
+        if (opts.propKeywordsA && opts.propKeywordsB && typeof scorePoliticalDimension === 'function') {
+          const pr = scorePoliticalDimension(text, opts.propKeywordsA, opts.propKeywordsB);
+          propDimension = { topicA: opts.propTopicA || 'state narrative', topicB: opts.propTopicB || 'independent', percentA: pr.percentA, percentB: pr.percentB };
+        }
       } catch (aiErr) {
         console.warn('AI check failed, using rule-based:', aiErr);
         const result = await analyzeVideo(data);
@@ -182,6 +201,10 @@ async function runCheck() {
         if (opts.keywordsA && opts.keywordsB && typeof scorePoliticalDimension === 'function') {
           const r = scorePoliticalDimension(text, opts.keywordsA, opts.keywordsB);
           dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: r.percentA, percentB: r.percentB };
+        }
+        if (opts.propKeywordsA && opts.propKeywordsB && typeof scorePoliticalDimension === 'function') {
+          const pr = scorePoliticalDimension(text, opts.propKeywordsA, opts.propKeywordsB);
+          propDimension = { topicA: opts.propTopicA || 'state narrative', topicB: opts.propTopicB || 'independent', percentA: pr.percentA, percentB: pr.percentB };
         }
       }
     } else {
@@ -194,15 +217,19 @@ async function runCheck() {
         const r = scorePoliticalDimension(text, opts.keywordsA, opts.keywordsB);
         dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: r.percentA, percentB: r.percentB };
       }
+      if (opts.propKeywordsA && opts.propKeywordsB && typeof scorePoliticalDimension === 'function') {
+        const pr = scorePoliticalDimension(text, opts.propKeywordsA, opts.propKeywordsB);
+        propDimension = { topicA: opts.propTopicA || 'state narrative', topicB: opts.propTopicB || 'independent', percentA: pr.percentA, percentB: pr.percentB };
+      }
     }
     let emotionsTouched = [];
     if (data.isShorts && typeof getEmotionsTouched === 'function') {
       const et = getEmotionsTouched(text);
       emotionsTouched = et.emotions || [];
     }
-    showResults(sense, emotions, propaganda, summary, dimension, emotionsTouched);
+    showResults(sense, emotions, propaganda, summary, dimension, emotionsTouched, propDimension);
   } catch (e) {
-    showResults(0, 0, 0, 'Analysis failed. Try again.', null, null);
+    showResults(0, 0, 0, 'Analysis failed. Try again.', null, null, null);
   } finally {
     setLoading(false);
   }
@@ -211,80 +238,13 @@ async function runCheck() {
 function analyzeVideo(data) {
   return new Promise((resolve) => {
     const text = [data.title, data.channel, data.description].filter(Boolean).join(' ');
-    const analyzer = new SenseEmotionsPropagandaAnalyzer();
-    const result = analyzer.analyze(text);
+    const result = typeof runSenseAnalysis === 'function' ? runSenseAnalysis(text) : { sense: 50, emotions: 20, propaganda: 0, summary: '' };
     setTimeout(() => resolve(result), 400);
   });
 }
 
-class SenseEmotionsPropagandaAnalyzer {
-  constructor() {
-    this.emotionWords = {
-      high: ['love', 'hate', 'angry', 'fear', 'joy', 'cry', 'rage', 'outrage', 'devastating', 'incredible', 'shocking', 'heartbreaking', 'amazing', 'terrifying', 'hopeful', 'desperate'],
-      medium: ['happy', 'sad', 'excited', 'worried', 'proud', 'upset', 'calm', 'nervous', 'surprised', 'disappointed', 'frustrated', 'relieved'],
-    };
-    this.propagandaIndicators = [
-      'they don\'t want you to know', 'wake up', 'sheeple', 'mainstream media', 'fake news', 'conspiracy', 'elite', 'globalist', 'agenda', 'narrative', 'cover-up', 'truth they hide',
-      'wake up people', 'open your eyes', 'wake up america', 'wake up world', 'they\'re lying', 'they are lying', 'don\'t trust', 'brainwash', 'propaganda', 'censored', 'they censored',
-    ];
-  }
-
-  analyze(text) {
-    const lower = (text || '').toLowerCase();
-    const words = lower.split(/\s+/).filter(Boolean);
-
-    const sense = this.scoreSense(words, lower);
-    const emotions = this.scoreEmotions(lower);
-    const propaganda = this.scorePropaganda(lower);
-
-    const summary = this.buildSummary(sense, emotions, propaganda);
-    return { sense, emotions, propaganda, summary };
-  }
-
-  scoreSense(words, fullText) {
-    if (words.length < 3) return 30;
-    const hasQuestion = /\?/.test(fullText);
-    const allCapsRatio = (fullText.match(/\b[A-Z]{2,}\b/g) || []).length / Math.max(words.length, 1);
-    const exclamations = (fullText.match(/!+/g) || []).length;
-    let score = 70;
-    if (hasQuestion) score += 5;
-    if (allCapsRatio > 0.15) score -= 15;
-    if (exclamations > 2) score -= 10;
-    return Math.max(0, Math.min(100, Math.round(score)));
-  }
-
-  scoreEmotions(text) {
-    let count = 0;
-    for (const w of this.emotionWords.high) {
-      if (text.includes(w)) count += 3;
-    }
-    for (const w of this.emotionWords.medium) {
-      if (text.includes(w)) count += 1;
-    }
-    const score = Math.min(100, 20 + count * 8);
-    return Math.round(score);
-  }
-
-  scorePropaganda(text) {
-    let count = 0;
-    for (const phrase of this.propagandaIndicators) {
-      if (text.includes(phrase)) count++;
-    }
-    const score = Math.min(100, count * 18);
-    return Math.round(score);
-  }
-
-  buildSummary(sense, emotions, propaganda) {
-    const parts = [];
-    if (sense >= 70) parts.push('Content appears relatively factual and coherent.');
-    else if (sense < 50) parts.push('Title/description may use sensational or unclear framing.');
-    if (emotions > 60) parts.push('Emotionally charged language detected.');
-    if (propaganda > 40) parts.push('Some phrases often associated with propaganda or manipulation were found—consider multiple sources.');
-    return parts.length ? parts.join(' ') : 'No strong signals. Consider watching with a critical eye.';
-  }
-}
-
 document.getElementById('check-btn').addEventListener('click', runCheck);
+document.getElementById('politics-marks-btn').addEventListener('click', runCheck);
 
 document.getElementById('open-options').addEventListener('click', (e) => {
   e.preventDefault();

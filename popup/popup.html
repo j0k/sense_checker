@@ -11,7 +11,7 @@
     <header>
       <h1>Sense Checker</h1>
       <p class="subtitle">Sense, Emotions & Propaganda</p>
-      <a href="#" id="open-options" class="link">Settings (political topics)</a>
+      <a href="#" id="open-options" class="link">Settings (political & propaganda)</a>
     </header>
 
     <div id="no-video" class="card message">
@@ -40,6 +40,7 @@
         <p id="video-channel" class="meta">—</p>
       </div>
       <button id="check-btn" class="btn primary">Check this video</button>
+      <button id="politics-marks-btn" class="btn secondary">Politics marks</button>
       <div id="results" class="results hidden">
         <div class="result-row">
           <span class="label">Sense</span>
@@ -82,11 +83,24 @@
             <div id="dimension-bar-b" class="dimension-bar right"></div>
           </div>
         </div>
+        <div id="prop-dimension-row" class="dimension-row prop-dimension-row hidden">
+          <p class="dimension-value" id="prop-dimension-value"></p>
+          <div class="wind-rose-legend">
+            <span id="prop-dimension-label-a" class="dimension-label">—</span>
+            <span class="dimension-label dim-mid">↔</span>
+            <span id="prop-dimension-label-b" class="dimension-label">—</span>
+          </div>
+          <div class="dimension-bar-wrap">
+            <div id="prop-dimension-bar-a" class="dimension-bar left"></div>
+            <div id="prop-dimension-bar-b" class="dimension-bar right"></div>
+          </div>
+        </div>
         <p id="summary" class="summary"></p>
       </div>
       <div id="loading" class="loading hidden">Analyzing…</div>
     </div>
   </div>
+  <script src="../shared/sense-analyzer.js"></script>
   <script src="../shared/political-dimension.js"></script>
   <script src="../shared/emotion-tags.js"></script>
   <script src="../shared/ai-checker.js"></script>

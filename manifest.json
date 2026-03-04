@@ -22,6 +22,9 @@
   "options_ui": {
     "page": "options/options.html"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],

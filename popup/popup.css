@@ -118,6 +118,16 @@ h1 {
 .btn.primary:hover {
   background: #1e293b;
 }
+.btn.secondary {
+  background: #e2e8f0;
+  color: #334155;
+  margin-top: 8px;
+}
+.btn.secondary:hover {
+  background: #cbd5e1;
+}
+.prop-dimension-row .dimension-bar.left { background: #b45309; }
+.prop-dimension-row .dimension-bar.right { background: #0d9488; }
 
 .results {
   margin-top: 16px;

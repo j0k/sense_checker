@@ -12,12 +12,91 @@
   }
 
   if (isVideoPage()) {
+    function tryInject() {
+      if (document.getElementById('sense-checker-injected-btn')) return;
+      injectSenseAnalyzeButton();
+    }
+    tryInject();
+    setTimeout(tryInject, 1500);
+    setTimeout(tryInject, 4000);
     const observer = new MutationObserver(function () {
-      if (document.querySelector('h1.ytd-video-primary-info-renderer, #title h1, h1.title')) {
-        // Page ready for extraction
-      }
+      if (!document.getElementById('sense-checker-injected-btn')) tryInject();
     });
     observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function getVideoDataForAnalyze() {
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    const title = ogTitle ? (ogTitle.getAttribute('content') || '').trim() : '';
+    const description = ogDesc ? (ogDesc.getAttribute('content') || '').trim() : '';
+    const sel = (s) => document.querySelector(s);
+    const channelEl = sel('#channel-name a') || sel('ytd-channel-name a') || sel('#text.ytd-channel-name a');
+    const channel = channelEl ? (channelEl.textContent || '').trim() : '';
+    return { title, channel, description };
+  }
+
+  function showSenseOverlay(result) {
+    const id = 'sense-checker-overlay';
+    let el = document.getElementById(id);
+    if (el) el.remove();
+    el = document.createElement('div');
+    el.id = id;
+    el.innerHTML =
+      '<div class="sense-checker-overlay-backdrop"></div>' +
+      '<div class="sense-checker-overlay-card">' +
+      '<div class="sense-checker-overlay-title">Sense Checker</div>' +
+      '<div class="sense-checker-overlay-row"><span>Sense</span><span>' + result.sense + '%</span></div>' +
+      '<div class="sense-checker-overlay-row"><span>Emotions</span><span>' + result.emotions + '%</span></div>' +
+      '<div class="sense-checker-overlay-row"><span>Propaganda</span><span>' + result.propaganda + '%</span></div>' +
+      '<p class="sense-checker-overlay-summary">' + (result.summary || '').replace(/</g, '&lt;') + '</p>' +
+      '<button type="button" class="sense-checker-overlay-close">Close</button>' +
+      '</div>';
+    el.querySelector('.sense-checker-overlay-backdrop').onclick = () => el.remove();
+    el.querySelector('.sense-checker-overlay-close').onclick = () => el.remove();
+    const style = document.createElement('style');
+    style.textContent =
+      '.sense-checker-overlay-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;}' +
+      '#sense-checker-overlay .sense-checker-overlay-card{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;padding:20px;min-width:280px;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:9999;font-family:system-ui,sans-serif;font-size:14px;}' +
+      '.sense-checker-overlay-title{font-weight:700;margin-bottom:12px;color:#0f172a;}' +
+      '.sense-checker-overlay-row{display:flex;justify-content:space-between;margin-bottom:8px;}' +
+      '.sense-checker-overlay-summary{margin:12px 0;font-size:13px;color:#475569;line-height:1.4;}' +
+      '.sense-checker-overlay-close{width:100%;padding:8px;background:#0f172a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;}';
+    el.appendChild(style);
+    document.body.appendChild(el);
+  }
+
+  function injectSenseAnalyzeButton() {
+    if (document.getElementById('sense-checker-injected-btn')) return;
+    const primary = document.querySelector('ytd-video-primary-info-renderer');
+    const actionsRow = document.querySelector('#top-level-buttons-computed') ||
+      document.querySelector('#top-level-buttons') ||
+      (primary && primary.querySelector('#actions')) ||
+      (primary && primary.querySelector('ytd-menu-renderer') && primary.querySelector('ytd-menu-renderer').parentElement);
+    const menuRenderer = primary && primary.querySelector('ytd-menu-renderer');
+    const insertAfter = menuRenderer || (actionsRow && actionsRow.lastElementChild) || null;
+    if (!insertAfter) return;
+    const btn = document.createElement('button');
+    btn.id = 'sense-checker-injected-btn';
+    btn.type = 'button';
+    btn.className = 'sense-checker-yt-btn';
+    btn.textContent = 'Sense Analyze';
+    btn.setAttribute('aria-label', 'Sense Analyze');
+    const style = document.createElement('style');
+    style.textContent = '.sense-checker-yt-btn{background:transparent;border:none;color:#0f0f0f;cursor:pointer;font-family:inherit;font-size:14px;padding:0 16px;height:36px;align-items:center;display:inline-flex;}.sense-checker-yt-btn:hover{background:rgba(0,0,0,0.05);border-radius:18px;}';
+    document.head.appendChild(style);
+    btn.onclick = function () {
+      btn.disabled = true;
+      btn.textContent = '…';
+      const data = getVideoDataForAnalyze();
+      chrome.runtime.sendMessage({ action: 'analyze', title: data.title, channel: data.channel, description: data.description }, function (res) {
+        btn.disabled = false;
+        btn.textContent = 'Sense Analyze';
+        if (res && res.ok) showSenseOverlay(res);
+        else showSenseOverlay({ sense: 0, emotions: 0, propaganda: 0, summary: 'Analysis failed.' });
+      });
+    };
+    insertAfter.parentNode.insertBefore(btn, insertAfter.nextSibling);
   }
 
   function getVideoIdFromHref(href) {

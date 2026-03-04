@@ -35,6 +35,23 @@
         <tbody id="tbody"></tbody>
       </table>
     </div>
+
+    <hr class="section-hr" />
+    <h2>Score list as JSON (politic, pro_Russian, pro_Ukranian)</h2>
+    <p class="intro">Paste a YouTube list (titles and channel lines, or one title per line). Titles are parsed and each is scored 0–1 for <strong>politic</strong>, <strong>pro_Russian</strong>, <strong>pro_Ukranian</strong>. Result is JSON.</p>
+    <div class="form-group">
+      <label for="list-paste">Paste YouTube list (mixed format or one title per line)</label>
+      <textarea id="list-paste" rows="12" placeholder="Paste your list (e.g. title then channel then views...) or one title per line"></textarea>
+    </div>
+    <div class="actions">
+      <button id="score-json" class="btn primary">Score and get JSON</button>
+      <button id="copy-json" class="btn secondary hidden">Copy JSON</button>
+    </div>
+    <div id="json-status" class="feed-status"></div>
+    <div class="form-group">
+      <label for="json-output">Result JSON</label>
+      <textarea id="json-output" rows="16" readonly placeholder="Click 'Score and get JSON' to fill"></textarea>
+    </div>
   </div>
   <script src="../shared/political-dimension.js"></script>
   <script src="list.js"></script>
