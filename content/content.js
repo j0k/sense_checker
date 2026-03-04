@@ -6,10 +6,17 @@
   'use strict';
 
   const VIDEO_URL_REGEX = /^https:\/\/www\.youtube\.com\/watch\?v=/;
+  const SENSE_ANALYZE_MENU_ID = 'sense-checker-menu-item';
 
   function isVideoPage() {
     return VIDEO_URL_REGEX.test(window.location.href);
   }
+
+  let lastClickedVideoCard = null;
+  document.addEventListener('click', function (e) {
+    const card = e.target.closest('ytd-video-renderer, ytd-rich-item-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer');
+    if (card) lastClickedVideoCard = card;
+  }, true);
 
   if (isVideoPage()) {
     function tryInject() {
@@ -24,6 +31,79 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
+
+  function isVisible(el) {
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+
+  function queryAllIncludingShadow(root, selector) {
+    const out = [];
+    root.querySelectorAll(selector).forEach((el) => out.push(el));
+    root.querySelectorAll('*').forEach((el) => {
+      if (el.shadowRoot) queryAllIncludingShadow(el.shadowRoot, selector).forEach((e) => out.push(e));
+    });
+    return out;
+  }
+
+  function injectSenseAnalyzeIntoMenu() {
+    const reportItems = queryAllIncludingShadow(document.body, 'tp-yt-paper-item, ytd-menu-service-item-renderer, ytd-menu-navigation-item-renderer');
+    const reportItem = reportItems.find(function (el) {
+      const t = (el.textContent || '').trim();
+      if (t !== 'Report' && (!t.includes('Report') || t.length > 25)) return false;
+      const list = el.closest('tp-yt-paper-listbox') || el.parentElement;
+      if (!list || !isVisible(list)) return false;
+      if (list.querySelector('[data-sense-checker="menu-item"]')) return false;
+      return true;
+    });
+    if (!reportItem) return;
+    const list = reportItem.closest('tp-yt-paper-listbox') || reportItem.closest('#content') || reportItem.parentElement;
+    if (!list) return;
+    const our = document.createElement(reportItem.tagName === 'YTD-MENU-SERVICE-ITEM-RENDERER' ? 'ytd-menu-service-item-renderer' : 'tp-yt-paper-item');
+    our.id = SENSE_ANALYZE_MENU_ID;
+    our.setAttribute('data-sense-checker', 'menu-item');
+    our.className = reportItem.className || '';
+    our.setAttribute('role', reportItem.getAttribute('role') || 'menuitem');
+    if (reportItem.style && reportItem.style.cssText) our.style.cssText = reportItem.style.cssText;
+    const label = document.createElement('span');
+    label.textContent = 'Sense Analyze';
+    our.appendChild(label);
+    our.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      runSenseAnalyzeForMenu();
+    });
+    reportItem.parentNode.insertBefore(our, reportItem.nextSibling);
+  }
+
+  function getVideoDataFromCard(card) {
+    if (!card) return null;
+    const titleEl = card.querySelector('#video-title, [id="video-title"]');
+    const channelEl = card.querySelector('#channel-name a, #text.ytd-channel-name, ytd-channel-name a');
+    const getText = (el) => (el && el.textContent ? el.textContent.trim() : '');
+    return { title: getText(titleEl), channel: getText(channelEl), description: '' };
+  }
+
+  function runSenseAnalyzeForMenu() {
+    const data = isVideoPage() ? getVideoDataForAnalyze() : getVideoDataFromCard(lastClickedVideoCard);
+    if (!data || !data.title) {
+      showSenseOverlay({ sense: 0, emotions: 0, propaganda: 0, summary: 'No video title found.' });
+      return;
+    }
+    chrome.runtime.sendMessage({ action: 'analyze', title: data.title, channel: data.channel, description: data.description }, function (res) {
+      if (res && res.ok) showSenseOverlay(res);
+      else showSenseOverlay({ sense: 0, emotions: 0, propaganda: 0, summary: 'Analysis failed.' });
+    });
+  }
+
+  const menuObserver = new MutationObserver(function () {
+    if (document.getElementById(SENSE_ANALYZE_MENU_ID)) return;
+    const hasReport = document.body.textContent.includes('Report');
+    const hasDontRec = document.body.textContent.includes('Don\'t recommend channel');
+    if (hasReport && hasDontRec) injectSenseAnalyzeIntoMenu();
+  });
+  menuObserver.observe(document.body, { childList: true, subtree: true });
 
   function getVideoDataForAnalyze() {
     const ogTitle = document.querySelector('meta[property="og:title"]');

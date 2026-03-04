@@ -2,6 +2,26 @@
 
 All notable changes to Sense Checker are documented here.
 
+## [1.4.0] - 2026-03-04
+
+### Added
+
+- **Sense–politics embedding (t-SNE-like)** — New `shared/sense-politics-embedding.js`: extracts a high-dimensional feature vector from text (length, caps, emotion/propaganda/keyword counts, etc.), compares it to anchor vectors (neutral, emotional, topic A, topic B, propaganda) via Gaussian similarity, and projects to 2D (sense axis, politics axis). Sense and political dimension scores from this pipeline are used in the popup and in the “Sense Analyze” overlay when using the rule-based analyzer.
+
+### Technical
+
+- Background loads `sense-politics-embedding.js`, runs embedding in addition to `runSenseAnalysis`, and returns embedding-based sense and politicsA/politicsB. Popup “Check this video” now requests analysis from the background so it receives the same pipeline.
+
+---
+
+## [1.3.0] - 2026-03-04
+
+### Added
+
+- **Sense Analyze in three-dot menu** — “Sense Analyze” is now added as a menu item inside the video’s three-dot dropdown (after “Report”), in addition to the existing button in the action row on watch pages. Works on feed, search, and watch; uses the clicked video card or current page data.
+
+---
+
 ## [1.1.0] - 2026-03-04
 
 ### Added

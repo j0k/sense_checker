@@ -198,7 +198,9 @@ async function runCheck() {
         emotions = result.emotions;
         propaganda = result.propaganda;
         summary = result.summary;
-        if (opts.keywordsA && opts.keywordsB && typeof scorePoliticalDimension === 'function') {
+        if (result.politicsA != null && result.politicsB != null) {
+          dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: result.politicsA, percentB: result.politicsB };
+        } else if (opts.keywordsA && opts.keywordsB && typeof scorePoliticalDimension === 'function') {
           const r = scorePoliticalDimension(text, opts.keywordsA, opts.keywordsB);
           dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: r.percentA, percentB: r.percentB };
         }
@@ -213,7 +215,9 @@ async function runCheck() {
       emotions = result.emotions;
       propaganda = result.propaganda;
       summary = result.summary;
-      if (opts.keywordsA && opts.keywordsB && typeof scorePoliticalDimension === 'function') {
+      if (result.politicsA != null && result.politicsB != null) {
+        dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: result.politicsA, percentB: result.politicsB };
+      } else if (opts.keywordsA && opts.keywordsB && typeof scorePoliticalDimension === 'function') {
         const r = scorePoliticalDimension(text, opts.keywordsA, opts.keywordsB);
         dimension = { topicA: opts.topicA || 'proRussian', topicB: opts.topicB || 'proUkrainian', percentA: r.percentA, percentB: r.percentB };
       }
@@ -237,9 +241,11 @@ async function runCheck() {
 
 function analyzeVideo(data) {
   return new Promise((resolve) => {
-    const text = [data.title, data.channel, data.description].filter(Boolean).join(' ');
-    const result = typeof runSenseAnalysis === 'function' ? runSenseAnalysis(text) : { sense: 50, emotions: 20, propaganda: 0, summary: '' };
-    setTimeout(() => resolve(result), 400);
+    const payload = { action: 'analyze', title: data.title, channel: data.channel, description: data.description };
+    chrome.runtime.sendMessage(payload, (result) => {
+      if (result && result.ok) resolve(result);
+      else resolve({ sense: 50, emotions: 20, propaganda: 0, summary: '', politicsA: 50, politicsB: 50 });
+    });
   });
 }
 
